@@ -7,6 +7,8 @@ const port = process.env.PORT || 3000;
 
 db.connect();
 
+console.log(process.env.HOST);
+
 // Create table
 const createTableQuery = [
   "CREATE TABLE IF NOT EXISTS score",
