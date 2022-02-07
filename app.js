@@ -16,32 +16,60 @@ const createTableQuery = [
 ].join(" ");
 
 db.query(createTableQuery, (err, result) => {
-  if (err) throw err;
+  if (err)
+    return res
+      .status(500)
+      .send({ msg: "Something went wrong! Unable to create table." });
   console.log("Table created!");
 });
 
 app.post("/write", (req, res) => {
-  const body = req.body;
-  console.log(body);
-  const name = body.name;
-  const score = parseInt(body.score);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Content-Type", "application/json");
+  try {
+    const body = req.body;
+    console.log(body);
+    if (!body) {
+      return res
+        .status(404)
+        .send({ msg: "Cannot send an empty POST request." });
+    }
+    const name = body.name.toLowerCase().trim();
+    const score = parseInt(body.score);
 
-  // Insert new entry
-  const insertQuery = `INSERT INTO score (name, score) VALUES('${name}', ${score})`;
-  db.query(insertQuery, (err, result) => {
-    if (err) throw err;
-    console.log("1 record inserted");
-  });
-
-  res.status(200).send("Write DB Successfully!");
+    // Insert new entry
+    const insertQuery = `INSERT INTO score (name, score) VALUES('${name}', ${score})`;
+    db.query(insertQuery, (err, result) => {
+      if (err)
+        return res
+          .status(500)
+          .send({ msg: "Something went wrong! Unable to query." });
+      console.log("1 record inserted");
+      res
+        .status(200)
+        .send({ msg: `${name}: ${score} was stored in the Database.` });
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.get("/read", (_, res) => {
-  const getDataQuery = "SELECT * FROM score";
-  db.query(getDataQuery, (err, result) => {
-    if (err) throw err;
-    res.status(200).send(result);
-  });
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Content-Type", "application/json");
+
+  try {
+    const getDataQuery = "SELECT * FROM score";
+    db.query(getDataQuery, (err, result) => {
+      if (err)
+        return res
+          .status(500)
+          .send({ msg: "Something went wrong! Unable to query." });
+      res.status(200).send({ query: result });
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 app.listen(port, () => {
