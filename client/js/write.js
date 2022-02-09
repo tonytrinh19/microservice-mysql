@@ -9,7 +9,7 @@ $form_entry.addEventListener("submit", (e) => {
   const score = parseInt($score.value);
   $name.value = "";
   $score.value = "";
-  const url = "http://localhost:3000/write";
+  const url = "https://nodejs-mysql-4537.herokuapp.com/write";
   fetch(url, {
     method: "POST",
     body: JSON.stringify({
