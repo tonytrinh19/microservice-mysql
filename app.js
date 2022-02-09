@@ -1,8 +1,8 @@
+const { text } = require("express");
 const express = require("express");
 const app = express();
 const db = require("./config");
-// require("dotenv").config();
-app.use(express.json());
+app.use(express.text());
 const port = process.env.PORT || 3000;
 
 db.connect();
@@ -16,56 +16,43 @@ const createTableQuery = [
 ].join(" ");
 
 db.query(createTableQuery, (err, result) => {
-  if (err)
-    return res
-      .status(500)
-      .send({ msg: "Something went wrong! Unable to create table." });
+  if (err) throw err;
   console.log("Table created!");
 });
 
 app.post("/write", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Content-Type", "application/json");
-  try {
-    const body = req.body;
-    console.log(body);
-    if (!body) {
-      return res
-        .status(404)
-        .send({ msg: "Cannot send an empty POST request." });
-    }
-    const name = body.name.toLowerCase().trim();
-    const score = parseInt(body.score);
+  const body = JSON.parse(req.body);
+  const name = body.name;
+  const score = body.score;
 
-    // Insert new entry
-    const insertQuery = `INSERT INTO score (name, score) VALUES('${name}', ${score})`;
-    db.query(insertQuery, (err, result) => {
-      if (err)
-        return res
-          .status(500)
-          .send({ msg: "Something went wrong! Unable to query." });
-      console.log("1 record inserted");
-      res
-        .status(200)
-        .send({ msg: `${name}: ${score} was stored in the Database.` });
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  const addEntryToTable = `INSERT INTO score (name, score) VALUES (${db.escape(
+    name
+  )}, ${db.escape(score)})`;
+  db.query(addEntryToTable, (err, result) => {
+    if (err) {
+      res.writeHead(500, { "Access-Control-Allow-Origin": "*" });
+      return res.end(
+        JSON.stringify({ msg: "Something went wrong! Unable to query." })
+      );
+    }
+    const msg = `${name}:${score} was stored in the DB`;
+    console.log(msg);
+    res.writeHead(200, { "Access-Control-Allow-Origin": "*" });
+    res.end(JSON.stringify({ msg }));
+  });
 });
 
 app.get("/read", (_, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Content-Type", "application/json");
-
   try {
     const getDataQuery = "SELECT * FROM score";
     db.query(getDataQuery, (err, result) => {
-      if (err)
+      if (err) {
         return res
           .status(500)
           .send({ msg: "Something went wrong! Unable to query." });
-      res.status(200).send({ query: result });
+      }
+      res.writeHead(200, { "Access-Control-Allow-Origin": "*" });
+      res.end(JSON.stringify({ query: result }));
     });
   } catch (error) {
     console.log(error);
