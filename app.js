@@ -6,11 +6,6 @@ const db = require("./config");
 app.use(express.text());
 const port = process.env.PORT || 3000;
 
-db.connect((err) => {
-  if (err) console.log(err);
-  console.log("Connected to MySQL Server");
-});
-
 // Create table
 const createTableQuery = [
   "CREATE TABLE IF NOT EXISTS score",
