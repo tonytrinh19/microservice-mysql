@@ -4,7 +4,9 @@ const $result = document.querySelector("#result");
 $form.addEventListener("submit", (e) => {
   e.preventDefault();
   $result.innerHTML = "";
-  const url = "https://nodejs-mysql-4537.herokuapp.com/read";
+  // http://localhost:3000/read
+  // https://nodejs-mysql-4537.herokuapp.com/read
+  const url = "http://localhost:3000/read";
   fetch(url, {
     method: "GET",
   })

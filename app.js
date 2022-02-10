@@ -2,10 +2,14 @@ const { text } = require("express");
 const express = require("express");
 const app = express();
 const db = require("./config");
+
 app.use(express.text());
 const port = process.env.PORT || 3000;
 
-db.connect();
+db.connect((err) => {
+  if (err) console.log(err);
+  console.log("Connected to MySQL Server");
+});
 
 // Create table
 const createTableQuery = [
@@ -22,15 +26,23 @@ db.query(createTableQuery, (err, result) => {
 
 app.post("/write", (req, res) => {
   const body = JSON.parse(req.body);
+  if (body === undefined || body === {}) {
+    res.writeHead(500, { "Access-Control-Allow-Origin": "*" });
+
+    return res.end(
+      JSON.stringify({ msg: "Cannot send an empty body request." })
+    );
+  }
   const name = body.name;
   const score = body.score;
-
+  console.log(body);
   const addEntryToTable = `INSERT INTO score (name, score) VALUES (${db.escape(
     name
   )}, ${db.escape(score)})`;
   db.query(addEntryToTable, (err, result) => {
     if (err) {
       res.writeHead(500, { "Access-Control-Allow-Origin": "*" });
+      console.log(err);
       return res.end(
         JSON.stringify({ msg: "Something went wrong! Unable to query." })
       );
